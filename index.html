@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pro Paint Sydney — Quote System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #F5F3EF;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE8;
+  --border: #E2DDD6;
+  --border2: #CCC8C0;
+  --text: #1A1916;
+  --text2: #6B6760;
+  --text3: #A09D98;
+  --accent: #1E3A2F;
+  --accent2: #2D5641;
+  --accent-light: #E8F0EB;
+  --amber: #B8620A;
+  --amber-light: #FDF3E7;
+  --red: #9B2626;
+  --red-light: #FDF0F0;
+  --green: #1E6B3A;
+  --green-light: #EBF5EE;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* LAYOUT */
+.shell { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 220px; min-height: 100vh; background: var(--accent);
+  display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 28px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sidebar-logo .brand { font-family: 'DM Serif Display', serif; font-size: 18px; color: #fff; line-height: 1.2; }
+.sidebar-logo .tagline { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 3px; letter-spacing: 0.5px; }
+.sidebar-logo .brush-icon { font-size: 22px; margin-bottom: 6px; }
+
+.nav { flex: 1; padding: 16px 0; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px; font-size: 13.5px; color: rgba(255,255,255,0.65);
+  cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+  font-family: 'DM Sans', sans-serif; transition: all 0.15s; border-left: 3px solid transparent;
+}
+.nav-item:hover { color: #fff; background: rgba(255,255,255,0.07); }
+.nav-item.active { color: #fff; background: rgba(255,255,255,0.12); border-left-color: #7EC8A4; font-weight: 500; }
+.nav-item .icon { width: 18px; text-align: center; font-size: 15px; }
+
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+.sidebar-footer .version { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+.main { margin-left: 220px; flex: 1; min-height: 100vh; }
+
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 60px; display: flex; align-items: center;
+  justify-content: space-between; position: sticky; top: 0; z-index: 50;
+}
+.topbar-title { font-family: 'DM Serif Display', serif; font-size: 20px; }
+.topbar-actions { display: flex; gap: 8px; }
+
+.content { padding: 28px 32px; max-width: 1100px; }
+
+/* PAGES */
+.page { display: none; }
+.page.active { display: block; }
+
+/* CARDS */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px 24px;
+  box-shadow: var(--shadow-sm); margin-bottom: 16px;
+}
+.card-title {
+  font-size: 13px; font-weight: 600; color: var(--text2); letter-spacing: 0.5px;
+  text-transform: uppercase; margin-bottom: 16px;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+
+/* GRID */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+/* FORM */
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; color: var(--text2); font-weight: 500; }
+.field input, .field select, .field textarea {
+  padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; background: var(--surface); color: var(--text);
+  font-family: 'DM Sans', sans-serif; transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--accent2);
+}
+.field textarea { resize: vertical; min-height: 70px; }
+
+/* BUTTONS */
+.btn {
+  padding: 9px 18px; border-radius: var(--radius-sm); font-size: 13.5px;
+  font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--surface2); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent2); }
+.btn-danger { background: var(--red-light); color: var(--red); border-color: #EEC0C0; }
+.btn-danger:hover { background: #F5D5D5; }
+.btn-sm { padding: 6px 12px; font-size: 12.5px; }
+.btn-icon { padding: 7px 10px; }
+
+/* METRIC CARDS */
+.metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.metric-label { font-size: 11.5px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-value { font-size: 26px; font-family: 'DM Serif Display', serif; margin: 4px 0 2px; }
+.metric-sub { font-size: 12px; color: var(--text3); }
+.metric.accent { background: var(--accent); border-color: var(--accent); }
+.metric.accent .metric-label, .metric.accent .metric-sub { color: rgba(255,255,255,0.55); }
+.metric.accent .metric-value { color: #fff; }
+
+/* BADGE */
+.badge {
+  display: inline-block; padding: 3px 9px; border-radius: 100px;
+  font-size: 11px; font-weight: 500;
+}
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-gray { background: var(--surface2); color: var(--text2); }
+.badge-accent { background: var(--accent-light); color: var(--accent); }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-size: 11.5px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.4px; padding: 0 12px 10px; border-bottom: 1px solid var(--border); }
+td { padding: 12px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.right { text-align: right; }
+
+/* TOGGLE PILLS */
+.pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill {
+  padding: 7px 14px; border-radius: 100px; font-size: 13px;
+  border: 1px solid var(--border2); background: var(--surface); color: var(--text2);
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+}
+.pill.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ROOM ROWS */
+.room-row { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 36px; gap: 8px; align-items: end; margin-bottom: 8px; }
+.room-row .field label { font-size: 11px; }
+
+/* DIVIDER */
+hr { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+
+/* ALERT/INFO */
+.info-bar {
+  background: var(--accent-light); border: 1px solid #B8D4C2;
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  font-size: 13px; color: var(--accent); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* TABS (inner) */
+.inner-tabs { display: flex; gap: 2px; background: var(--surface2); padding: 3px; border-radius: var(--radius-sm); margin-bottom: 20px; width: fit-content; }
+.inner-tab { padding: 7px 16px; font-size: 13px; border: none; background: transparent; cursor: pointer; border-radius: 5px; color: var(--text2); font-family: 'DM Sans', sans-serif; }
+.inner-tab.active { background: var(--surface); color: var(--text); font-weight: 500; box-shadow: var(--shadow-sm); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius); width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal-head { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-head h3 { font-family: 'DM Serif Display', serif; font-size: 18px; }
+.modal-body { padding: 20px 24px; }
+.modal-foot { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* QUOTE PRINT */
+@media print {
+  .sidebar, .topbar, .no-print { display: none !important; }
+  .main { margin-left: 0; }
+  .content { padding: 0; }
+  #print-area { display: block !important; }
+  .page { display: none !important; }
+  .page.active { display: none !important; }
+  #page-quote.active { display: block !important; }
+  body { background: #fff; }
+}
+
+/* QUOTE PREVIEW */
+.quote-doc {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 48px; font-size: 13px; line-height: 1.6;
+}
+.quote-doc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; }
+.quote-company-name { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--accent); }
+.quote-doc table { font-size: 13px; }
+.quote-doc th { font-size: 12px; background: var(--accent); color: #fff; padding: 10px 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+.quote-doc td { padding: 10px 14px; border-bottom: 1px solid #EEE; }
+.quote-total-box { margin-top: 20px; margin-left: auto; width: 280px; }
+.quote-total-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 13px; border-bottom: 1px solid var(--border); }
+.quote-grand { font-family: 'DM Serif Display', serif; font-size: 18px; border-bottom: none; padding-top: 12px; }
+.quote-terms { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text2); }
+
+/* CUSTOMER CARD */
+.cust-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 20px; cursor: pointer; transition: all 0.15s;
+}
+.cust-card:hover { border-color: var(--accent2); box-shadow: 0 2px 12px rgba(30,58,47,0.1); }
+.cust-name { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+.cust-info { font-size: 12.5px; color: var(--text2); }
+
+/* HISTORY */
+.hist-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.hist-row:last-child { border-bottom: none; }
+.hist-qn { font-weight: 600; font-size: 14px; min-width: 100px; }
+.hist-client { flex: 1; font-size: 13.5px; }
+.hist-amt { font-family: 'DM Serif Display', serif; font-size: 16px; min-width: 90px; text-align: right; }
+.hist-date { font-size: 12px; color: var(--text3); min-width: 90px; text-align: right; }
+
+/* EMPTY STATE */
+.empty { text-align: center; padding: 48px 24px; color: var(--text3); }
+.empty .icon { font-size: 36px; margin-bottom: 12px; }
+.empty p { font-size: 14px; }
+
+/* STEP INDICATOR */
+.steps { display: flex; gap: 0; margin-bottom: 24px; }
+.step { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text3); }
+.step-num { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.step.active .step-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step.active { color: var(--text); font-weight: 500; }
+.step.done .step-num { background: var(--green-light); border-color: var(--green); color: var(--green); }
+.step-line { flex: 1; height: 1px; background: var(--border); margin: 0 8px; }
+
+/* SEARCH */
+.search-wrap { position: relative; }
+.search-wrap input { padding-left: 34px; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+/* SECTION SPACING */
+.section-gap { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brush-icon">🖌️</div>
+    <div class="brand">Pro Paint<br>Sydney</div>
+    <div class="tagline">Quote Management</div>
+  </div>
+  <nav class="nav">
+    <button class="nav-item active" onclick="goPage('dashboard')" id="nav-dashboard">
+      <span class="icon">📊</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="goPage('new-quote')" id="nav-new-quote">
+      <span class="icon">✏️</span> New Quote
+    </button>
+    <button class="nav-item" onclick="goPage('quotes')" id="nav-quotes">
+      <span class="icon">📋</span> All Quotes
+    </button>
+    <button class="nav-item" onclick="goPage('customers')" id="nav-customers">
+      <span class="icon">👥</span> Customers
+    </button>
+    <button class="nav-item" onclick="goPage('settings')" id="nav-settings">
+      <span class="icon">⚙️</span> Settings
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="version">v2.0 — Sydney NSW</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="g4 section-gap" id="dash-metrics"></div>
+      <div style="display:grid; grid-template-columns: 1.6fr 1fr; gap:16px;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" style="margin-bottom:0">Recent Quotes</div>
+            <button class="btn btn-sm" onclick="goPage('quotes')">View all</button>
+          </div>
+          <div id="dash-recent"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Quick Actions</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn btn-primary" onclick="startNewQuote()" style="justify-content:center;">✏️ &nbsp;New Quote</button>
+            <button class="btn" onclick="goPage('customers')" style="justify-content:center;">👤 &nbsp;Add Customer</button>
+            <button class="btn" onclick="exportData()" style="justify-content:center;">💾 &nbsp;Backup Data</button>
+            <button class="btn" onclick="document.getElementById('import-file').click()" style="justify-content:center;">📂 &nbsp;Restore Backup</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
+          </div>
+          <hr/>
+          <div class="card-title">Top Customers</div>
+          <div id="dash-top-customers"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW QUOTE (multi-step) -->
+    <div class="page" id="page-new-quote">
+      <div class="steps" id="quote-steps">
+        <div class="step active" id="step-1"><div class="step-num">1</div><span>Customer</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="step-2"><div class="step-num">2</div><span>Scope</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="step-3"><div class="step-num">3</div><span>Pricing</span></div>
+        <div class="step-line"></div>
+        <div class="step" id="step-4"><div class="step-num">4</div><span>Review</span></div>
+      </div>
+
+      <!-- STEP 1: Customer -->
+      <div id="qstep-1">
+        <div class="card">
+          <div class="card-title">Customer Details</div>
+          <div class="g2 section-gap">
+            <div class="field"><label>First Name *</label><input id="q-fname" placeholder="John"/></div>
+            <div class="field"><label>Last Name *</label><input id="q-lname" placeholder="Smith"/></div>
+            <div class="field"><label>Phone</label><input id="q-phone" placeholder="04xx xxx xxx"/></div>
+            <div class="field"><label>Email</label><input id="q-email" type="email" placeholder="john@email.com"/></div>
+          </div>
+          <div class="field section-gap"><label>Job Site Address *</label><input id="q-addr" placeholder="123 Example St, Suburb NSW 2000"/></div>
+          <div class="g2">
+            <div class="field"><label>Job Date</label><input id="q-date" type="date"/></div>
+            <div class="field"><label>Existing Customer</label>
+              <select id="q-existing-customer" onchange="fillFromCustomer(this.value)">
+                <option value="">— New customer —</option>
+              </select>
+            </div>
+          </div>
+          <div class="field section-gap" style="margin-top:14px;"><label>Notes / Special Instructions</label><textarea id="q-notes" placeholder="Access details, pets, preferred colours, etc."></textarea></div>
+        </div>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="qNext(2)">Next: Scope →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Scope -->
+      <div id="qstep-2" style="display:none;">
+        <div class="card section-gap">
+          <div class="card-title">Job Type</div>
+          <div class="pill-group" id="job-toggles">
+            <button class="pill on" id="tog-interior" onclick="toggleJob('interior')">Interior Walls</button>
+            <button class="pill" id="tog-exterior" onclick="toggleJob('exterior')">Exterior Walls</button>
+            <button class="pill" id="tog-ceiling" onclick="toggleJob('ceiling')">Ceilings</button>
+            <button class="pill" id="tog-trim" onclick="toggleJob('trim')">Trim & Skirting</button>
+            <button class="pill" id="tog-door" onclick="toggleJob('door')">Doors & Frames</button>
+            <button class="pill" id="tog-prep" onclick="toggleJob('prep')">Prep Work</button>
+          </div>
+        </div>
+
+        <!-- INTERIOR -->
+        <div class="card section-gap" id="scope-interior">
+          <div class="card-header">
+            <div class="card-title" style="margin-bottom:0">Interior — Room Areas</div>
+            <button class="btn btn-sm btn-primary" onclick="addRoom()">+ Add Room</button>
+          </div>
+          <div class="info-bar">💡 벽 면적 자동 계산. 창문/문 면적 15% 자동 공제됩니다.</div>
+          <div style="display:grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 36px; gap:8px; margin-bottom:4px; padding:0 0 4px; border-bottom:1px solid var(--border);">
+            <span style="font-size:11px; color:var(--text2); font-weight:600; text-transform:uppercase; letter-spacing:.4px;">Room / Area</span>
+            <span style="font-size:11px; color:var(--text2); font-weight:600; text-transform:uppercase; letter-spacing:.4px;">Width (m)</span>
+            <span style="font-size:11px; color:var(--text2); font-weight:600; text-transform:uppercase; letter-spacing:.4px;">Length (m)</span>
+            <span style="font-size:11px; color:var(--text2); font-weight:600; text-transform:uppercase; letter-spacing:.4px;">Height (m)</span>
+            <span style="font-size:11px; color:var(--text2); font-weight:600; text-transform:uppercase; letter-spacing:.4px;">Wall m²</span>
+            <span></span>
+          </div>
+          <div id="rooms-list"></div>
+          <div id="interior-totals" style="font-size:13px; color:var(--text2); padding-top:8px; border-top:1px solid var(--border); margin-top:8px;"></div>
+          <hr/>
+          <div class="g2">
+            <div class="field"><label>Coats</label>
+              <select id="interior-coats">
+                <option value="1">1 coat</option>
+                <option value="2" selected>2 coats (standard)</option>
+                <option value="3">3 coats (dark→light)</option>
+              </select>
+            </div>
+            <div class="field"><label>Paint Grade</label>
+              <select id="interior-grade">
+                <option value="standard">Standard — ~$60/10L</option>
+                <option value="premium" selected>Premium — ~$90/10L</option>
+                <option value="luxury">Luxury — ~$120/10L</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXTERIOR -->
+        <div class="card section-gap" id="scope-exterior" style="display:none;">
+          <div class="card-title">Exterior Walls</div>
+          <div class="g3">
+            <div class="field"><label>Building Perimeter (m)</label><input id="ext-perim" type="number" value="40" min="1"/></div>
+            <div class="field"><label>Storeys</label><select id="ext-floors"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+            <div class="field"><label>Floor Height (m)</label><input id="ext-floorh" type="number" value="2.7" step="0.1"/></div>
+            <div class="field"><label>Window Count</label><input id="ext-wins" type="number" value="8"/></div>
+            <div class="field"><label>Avg Window Size (m²)</label><input id="ext-winsize" type="number" value="1.5" step="0.1"/></div>
+            <div class="field"><label>Large Doors (garage etc)</label><input id="ext-doors" type="number" value="1"/></div>
+          </div>
+          <div class="g2" style="margin-top:12px;">
+            <div class="field"><label>Coats</label><select id="ext-coats"><option value="1">1 coat</option><option value="2" selected>2 coats</option><option value="3">3 coats</option></select></div>
+            <div class="field"><label>Surface Type</label><select id="ext-surface"><option value="render">Render / Brick veneer</option><option value="weatherboard">Weatherboard / Timber</option><option value="fibro">Fibro / Hardiplank</option></select></div>
+          </div>
+        </div>
+
+        <!-- CEILING -->
+        <div class="card section-gap" id="scope-ceiling" style="display:none;">
+          <div class="card-title">Ceilings</div>
+          <div class="g2">
+            <div class="field"><label>Total Ceiling Area (m²)</label><input id="ceil-area" type="number" placeholder="80"/></div>
+            <div class="field"><label>Coats</label><select id="ceil-coats"><option value="1">1 coat</option><option value="2" selected>2 coats</option></select></div>
+          </div>
+        </div>
+
+        <!-- TRIM -->
+        <div class="card section-gap" id="scope-trim" style="display:none;">
+          <div class="card-title">Trim & Skirting</div>
+          <div class="g2">
+            <div class="field"><label>Total Length (m)</label><input id="trim-len" type="number" placeholder="60"/></div>
+            <div class="field"><label>Finish</label><select id="trim-finish"><option value="satin">Satin</option><option value="gloss" selected>Gloss</option></select></div>
+          </div>
+        </div>
+
+        <!-- DOORS -->
+        <div class="card section-gap" id="scope-door" style="display:none;">
+          <div class="card-title">Doors & Frames</div>
+          <div class="g2">
+            <div class="field"><label>Number of Doors (internal)</label><input id="door-count" type="number" placeholder="8"/></div>
+            <div class="field"><label>Finish</label><select id="door-finish"><option value="satin">Satin</option><option value="gloss" selected>Semi-Gloss</option></select></div>
+          </div>
+        </div>
+
+        <!-- PREP -->
+        <div class="card section-gap" id="scope-prep" style="display:none;">
+          <div class="card-title">Prep Work</div>
+          <div class="g2">
+            <div class="field"><label>Prep Hours</label><input id="prep-hrs" type="number" placeholder="4"/></div>
+            <div class="field"><label>Prep Type</label><select id="prep-type"><option>Filling & sanding</option><option>Sugar soap wash</option><option>Plaster repair</option><option>Full prep (all)</option></select></div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; justify-content:space-between;">
+          <button class="btn" onclick="qNext(1)">← Back</button>
+          <button class="btn btn-primary" onclick="qNext(3)">Next: Pricing →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Pricing -->
+      <div id="qstep-3" style="display:none;">
+        <div class="card section-gap">
+          <div class="card-title">Labour & Pricing</div>
+          <div class="g3 section-gap">
+            <div class="field"><label>Painters on Job</label><input id="q-painters" type="number" value="1" min="1"/></div>
+            <div class="field"><label>Hourly Rate (AUD)</label><input id="q-rate" type="number" value="65"/></div>
+            <div class="field"><label>Estimated Work Days</label><input id="q-days" type="number" value="2" step="0.5"/></div>
+          </div>
+          <div class="g3">
+            <div class="field"><label>Margin / Markup (%)</label><input id="q-margin" type="number" value="20" min="0" max="60"/></div>
+            <div class="field"><label>GST</label><select id="q-gst"><option value="1">Include GST (10%)</option><option value="0">Exclude GST</option></select></div>
+            <div class="field"><label>Quote Validity (days)</label><input id="q-validity" type="number" value="30"/></div>
+          </div>
+        </div>
+        <div class="card section-gap" id="pricing-preview">
+          <div class="card-title">Pricing Preview</div>
+          <div class="g4" id="price-metrics"></div>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:space-between;">
+          <button class="btn" onclick="qNext(2)">← Back</button>
+          <button class="btn btn-primary" onclick="qNext(4); computeAndPreview()">Review Quote →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Review -->
+      <div id="qstep-4" style="display:none;">
+        <div id="quote-doc-wrapper"></div>
+        <div class="card no-print" style="margin-top:16px;">
+          <div class="card-title">Actions</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" onclick="qNext(3)">← Edit</button>
+            <button class="btn btn-primary" onclick="saveAndFinish()">💾 Save Quote</button>
+            <button class="btn" onclick="printQuote()">🖨️ Print / Save PDF</button>
+            <button class="btn" onclick="emailQuote()">📧 Email Quote</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALL QUOTES -->
+    <div class="page" id="page-quotes">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" style="margin-bottom:0">All Quotes</div>
+          <div style="display:flex; gap:8px;">
+            <div class="search-wrap">
+              <span class="search-icon">🔍</span>
+              <input placeholder="Search client or address..." id="quote-search" oninput="renderQuotesList()" style="padding-left:34px; width:220px;"/>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="startNewQuote()">+ New Quote</button>
+          </div>
+        </div>
+        <div class="inner-tabs">
+          <button class="inner-tab active" onclick="filterQuotes('all', this)">All</button>
+          <button class="inner-tab" onclick="filterQuotes('draft', this)">Draft</button>
+          <button class="inner-tab" onclick="filterQuotes('sent', this)">Sent</button>
+          <button class="inner-tab" onclick="filterQuotes('accepted', this)">Accepted</button>
+          <button class="inner-tab" onclick="filterQuotes('completed', this)">Completed</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Quote #</th>
+              <th>Client</th>
+              <th>Address</th>
+              <th>Date</th>
+              <th class="right">Amount</th>
+              <th>Status</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="quotes-tbody"></tbody>
+          </table>
+          <div id="quotes-empty" class="empty" style="display:none;">
+            <div class="icon">📋</div>
+            <p>No quotes yet. Create your first quote!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="page" id="page-customers">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div class="card-title" style="margin-bottom:0">Customer Database</div>
+          <button class="btn btn-primary btn-sm" onclick="openCustomerModal()">+ Add Customer</button>
+        </div>
+        <div class="search-wrap" style="margin-bottom:16px;">
+          <span class="search-icon">🔍</span>
+          <input placeholder="Search customers..." id="cust-search" oninput="renderCustomers()" style="padding-left:34px; width:260px;"/>
+        </div>
+        <div id="customers-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:12px;"></div>
+        <div id="customers-empty" class="empty" style="display:none;">
+          <div class="icon">👥</div>
+          <p>No customers yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="card section-gap">
+        <div class="card-title">Company Information</div>
+        <div class="g2">
+          <div class="field"><label>Company Name</label><input id="s-name" /></div>
+          <div class="field"><label>Phone</label><input id="s-phone"/></div>
+          <div class="field"><label>Email</label><input id="s-email" type="email"/></div>
+          <div class="field"><label>Website</label><input id="s-web"/></div>
+          <div class="field"><label>ABN</label><input id="s-abn"/></div>
+          <div class="field"><label>Painter's Licence No.</label><input id="s-lic"/></div>
+        </div>
+        <div class="field" style="margin-top:12px;"><label>Address</label><input id="s-addr"/></div>
+      </div>
+      <div class="card section-gap">
+        <div class="card-title">Paint Prices (AUD per 10L tin)</div>
+        <div class="g3">
+          <div class="field"><label>Standard (e.g. Taubmans)</label><input id="s-price-std" type="number" value="60"/></div>
+          <div class="field"><label>Premium (e.g. Dulux W&W)</label><input id="s-price-prem" type="number" value="90"/></div>
+          <div class="field"><label>Luxury (e.g. Dulux Ultra)</label><input id="s-price-lux" type="number" value="120"/></div>
+        </div>
+        <hr/>
+        <div class="card-title">Coverage Rates (m² per litre)</div>
+        <div class="g3">
+          <div class="field"><label>Interior walls</label><input id="s-cov-wall" type="number" value="10"/></div>
+          <div class="field"><label>Exterior walls</label><input id="s-cov-ext" type="number" value="8"/></div>
+          <div class="field"><label>Ceilings</label><input id="s-cov-ceil" type="number" value="12"/></div>
+        </div>
+        <hr/>
+        <div class="card-title">Default Labour Rates</div>
+        <div class="g3">
+          <div class="field"><label>Hourly Rate (AUD)</label><input id="s-rate" type="number" value="65"/></div>
+          <div class="field"><label>Default Margin (%)</label><input id="s-margin" type="number" value="20"/></div>
+          <div class="field"><label>Quote Validity (days)</label><input id="s-validity" type="number" value="30"/></div>
+        </div>
+        <hr/>
+        <div class="card-title">Quote Terms & Conditions</div>
+        <div class="field">
+          <textarea id="s-terms" rows="3">50% deposit required before commencement. Balance due on completion. All work carried out in accordance with AS/NZS standards and NSW Fair Trading guidelines. Quote valid as specified above.</textarea>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+      </div>
+    </div>
+
+    <!-- SINGLE QUOTE VIEW -->
+    <div class="page" id="page-quote">
+      <div class="no-print" style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <button class="btn" onclick="goPage('quotes')">← Back</button>
+        <button class="btn" onclick="printQuote()">🖨️ Print / Save PDF</button>
+        <button class="btn" onclick="emailQuote()">📧 Email</button>
+        <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+          <label style="font-size:13px; color:var(--text2);">Status:</label>
+          <select id="quote-status-select" onchange="updateQuoteStatus(this.value)" style="padding:7px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:13px;">
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="accepted">Accepted</option>
+            <option value="declined">Declined</option>
+            <option value="completed">Completed</option>
+          </select>
+          <button class="btn btn-danger btn-sm" onclick="deleteCurrentQuote()">🗑 Delete</button>
+        </div>
+      </div>
+      <div id="single-quote-doc"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- CUSTOMER MODAL -->
+<div class="modal-overlay" id="customer-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="cust-modal-title">Add Customer</h3>
+      <button class="btn btn-icon" onclick="closeCustomerModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="field"><label>First Name *</label><input id="cm-fname"/></div>
+        <div class="field"><label>Last Name *</label><input id="cm-lname"/></div>
+        <div class="field"><label>Phone</label><input id="cm-phone"/></div>
+        <div class="field"><label>Email</label><input id="cm-email" type="email"/></div>
+      </div>
+      <div class="field" style="margin-top:12px;"><label>Address</label><input id="cm-addr"/></div>
+      <div class="field" style="margin-top:12px;"><label>Notes</label><textarea id="cm-notes"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeCustomerModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== STATE ======
+let DB = {
+  settings: {
+    name: 'Pro Paint Sydney', phone: '0400 000 000', email: 'quote@propaintsydney.com.au',
+    web: 'www.propaintsydney.com.au', abn: '12 345 678 901', lic: 'NSW PL123456',
+    addr: 'Sydney NSW',
+    priceStd: 60, pricePrem: 90, priceLux: 120,
+    covWall: 10, covExt: 8, covCeil: 12,
+    rate: 65, margin: 20, validity: 30,
+    terms: '50% deposit required before commencement. Balance due on completion. All work carried out in accordance with AS/NZS standards and NSW Fair Trading guidelines. Quote valid as specified above.'
+  },
+  customers: [],
+  quotes: []
+};
+
+let currentQuoteId = null;
+let quoteFilter = 'all';
+let editingCustomerId = null;
+
+const jobs = { interior: true, exterior: false, ceiling: false, trim: false, door: false, prep: false };
+let rooms = [];
+let roomCnt = 0;
+let currentCalc = null;
+
+// ====== STORAGE ======
+function save() { localStorage.setItem('propaint_db', JSON.stringify(DB)); }
+function load() {
+  const raw = localStorage.getItem('propaint_db');
+  if (raw) {
+    try {
+      const d = JSON.parse(raw);
+      DB = { ...DB, ...d };
+      DB.settings = { ...DB.settings, ...(d.settings || {}) };
+    } catch(e) {}
+  }
+  loadSettingsUI();
+  populateExistingCustomers();
+}
+
+function loadSettingsUI() {
+  const s = DB.settings;
+  ['name','phone','email','web','abn','lic','addr','terms'].forEach(k => {
+    const el = document.getElementById('s-' + k);
+    if (el) el.value = s[k] || '';
+  });
+  ['price-std','price-prem','price-lux','cov-wall','cov-ext','cov-ceil','rate','margin','validity'].forEach(k => {
+    const el = document.getElementById('s-' + k);
+    const dbKey = k.replace(/-([a-z])/g, (_,c) => c.toUpperCase());
+    if (el && s[dbKey] !== undefined) el.value = s[dbKey];
+  });
+}
+
+function saveSettings() {
+  const s = DB.settings;
+  ['name','phone','email','web','abn','lic','addr','terms'].forEach(k => {
+    const el = document.getElementById('s-' + k);
+    if (el) s[k] = el.value;
+  });
+  s.priceStd = +document.getElementById('s-price-std').value;
+  s.pricePrem = +document.getElementById('s-price-prem').value;
+  s.priceLux = +document.getElementById('s-price-lux').value;
+  s.covWall = +document.getElementById('s-cov-wall').value;
+  s.covExt = +document.getElementById('s-cov-ext').value;
+  s.covCeil = +document.getElementById('s-cov-ceil').value;
+  s.rate = +document.getElementById('s-rate').value;
+  s.margin = +document.getElementById('s-margin').value;
+  s.validity = +document.getElementById('s-validity').value;
+  save();
+  alert('Settings saved!');
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'propaint_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      DB = JSON.parse(ev.target.result);
+      save();
+      load();
+      renderDashboard();
+      alert('Data restored successfully!');
+    } catch(err) { alert('Invalid backup file.'); }
+  };
+  reader.readAsText(file);
+}
+
+// ====== NAVIGATION ======
+const pageTitles = {
+  'dashboard': 'Dashboard',
+  'new-quote': 'New Quote',
+  'quotes': 'All Quotes',
+  'customers': 'Customers',
+  'settings': 'Settings',
+  'quote': 'Quote Detail'
+};
+
+function goPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  const nav = document.getElementById('nav-' + p);
+  if (nav) nav.classList.add('active');
+  document.getElementById('topbar-title').textContent = pageTitles[p] || '';
+  document.getElementById('topbar-actions').innerHTML = '';
+
+  if (p === 'dashboard') renderDashboard();
+  if (p === 'quotes') renderQuotesList();
+  if (p === 'customers') renderCustomers();
+}
+
+function startNewQuote() {
+  resetQuoteForm();
+  goPage('new-quote');
+  qNext(1);
+}
+
+// ====== STEP NAVIGATION ======
+function qNext(step) {
+  [1,2,3,4].forEach(i => {
+    document.getElementById('qstep-' + i).style.display = i === step ? '' : 'none';
+    const s = document.getElementById('step-' + i);
+    s.classList.toggle('active', i === step);
+    s.classList.toggle('done', i < step);
+  });
+  if (step === 3) {
+    document.getElementById('q-rate').value = DB.settings.rate;
+    document.getElementById('q-margin').value = DB.settings.margin;
+    document.getElementById('q-validity').value = DB.settings.validity;
+    updatePricePreview();
+  }
+}
+
+// ====== JOB TOGGLES ======
+function toggleJob(key) {
+  jobs[key] = !jobs[key];
+  document.getElementById('tog-' + key).classList.toggle('on', jobs[key]);
+  const map = { interior: 'scope-interior', exterior: 'scope-exterior', ceiling: 'scope-ceiling', trim: 'scope-trim', door: 'scope-door', prep: 'scope-prep' };
+  document.getElementById(map[key]).style.display = jobs[key] ? '' : 'none';
+}
+
+// ====== ROOMS ======
+function addRoom(name='', w=4, l=4, h=2.7) {
+  roomCnt++;
+  const id = 'r' + roomCnt;
+  rooms.push({ id, name, w, l, h });
+  renderRooms();
+}
+
+function removeRoom(id) {
+  rooms = rooms.filter(r => r.id !== id);
+  renderRooms();
+}
+
+function updateRoom(id, field, val) {
+  const r = rooms.find(x => x.id === id);
+  if (r) { r[field] = field === 'name' ? val : +val; renderInteriorTotals(); }
+}
+
+function renderRooms() {
+  const el = document.getElementById('rooms-list');
+  el.innerHTML = rooms.map(r => {
+    const wallArea = (2 * (r.w + r.l) * r.h * 0.85).toFixed(1);
+    return `<div class="room-row">
+      <div class="field"><input placeholder="e.g. Living Room" value="${r.name}" onchange="updateRoom('${r.id}','name',this.value)"/></div>
+      <div class="field"><input type="number" value="${r.w}" step="0.1" min="1" onchange="updateRoom('${r.id}','w',this.value)"/></div>
+      <div class="field"><input type="number" value="${r.l}" step="0.1" min="1" onchange="updateRoom('${r.id}','l',this.value)"/></div>
+      <div class="field"><input type="number" value="${r.h}" step="0.1" min="2" onchange="updateRoom('${r.id}','h',this.value)"/></div>
+      <div style="display:flex; align-items:center; font-size:13px; font-weight:500; color:var(--accent);">${wallArea} m²</div>
+      <button style="width:32px; height:36px; border:1px solid var(--border); background:transparent; border-radius:var(--radius-sm); cursor:pointer; color:var(--text3);" onclick="removeRoom('${r.id}')">✕</button>
+    </div>`;
+  }).join('');
+  renderInteriorTotals();
+}
+
+function renderInteriorTotals() {
+  let total = 0;
+  rooms.forEach(r => { total += 2 * (r.w + r.l) * r.h * 0.85; });
+  const coats = +document.getElementById('interior-coats').value;
+  const cov = DB.settings.covWall;
+  const liters = (total * coats) / cov;
+  document.getElementById('interior-totals').innerHTML =
+    `Total wall area: <strong>${total.toFixed(1)} m²</strong> &nbsp;|&nbsp; Paint needed (${coats} coat${coats>1?'s':''}): <strong>${liters.toFixed(1)} L</strong>`;
+}
+
+function resetQuoteForm() {
+  rooms = []; roomCnt = 0;
+  Object.keys(jobs).forEach(k => { jobs[k] = false; });
+  jobs.interior = true;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+  document.getElementById('tog-interior').classList.add('on');
+  ['scope-exterior','scope-ceiling','scope-trim','scope-door','scope-prep'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('scope-interior').style.display = '';
+  ['q-fname','q-lname','q-phone','q-email','q-addr','q-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('q-date').value = new Date().toISOString().slice(0,10);
+  currentQuoteId = null;
+  addRoom('Living Room', 5, 4, 2.7);
+  addRoom('Master Bedroom', 4, 3.5, 2.7);
+  addRoom('Bedroom 2', 3.5, 3, 2.7);
+}
+
+// ====== CALCULATE ======
+function gv(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function gs(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+function getPaintPrice(grade) {
+  if (grade === 'standard') return DB.settings.priceStd;
+  if (grade === 'luxury') return DB.settings.priceLux;
+  return DB.settings.pricePrem;
+}
+
+function calcQuote() {
+  const s = DB.settings;
+  const lines = [];
+  const paintList = [];
+  const intGrade = gs('interior-grade');
+  const pricePerL = getPaintPrice(intGrade) / 10;
+
+  let totalArea = 0, totalPaintL = 0;
+
+  // Interior
+  if (jobs.interior && rooms.length > 0) {
+    const coats = gv('interior-coats');
+    rooms.forEach(r => {
+      const net = 2 * (r.w + r.l) * r.h * 0.85;
+      const liters = (net * coats) / s.covWall;
+      const mat = liters * pricePerL;
+      totalArea += net;
+      totalPaintL += liters;
+      lines.push({ desc: (r.name||'Room') + ' — interior walls', tag: 'Interior', qty: net.toFixed(1) + ' m²', liters, mat, labor: 0 });
+    });
+    paintList.push({ item: `Interior Wall Paint (${intGrade})`, liters: totalPaintL, grade: intGrade });
+  }
+
+  // Ceiling
+  if (jobs.ceiling) {
+    const area = gv('ceil-area');
+    const coats = gv('ceil-coats');
+    const liters = (area * coats) / s.covCeil;
+    const mat = liters * (s.priceStd / 10);
+    lines.push({ desc: 'Ceiling — white paint', tag: 'Ceiling', qty: area.toFixed(1) + ' m²', liters, mat, labor: 0 });
+    paintList.push({ item: 'Ceiling White', liters, grade: 'standard' });
+    totalArea += area;
+  }
+
+  // Trim
+  if (jobs.trim) {
+    const len = gv('trim-len');
+    const trimArea = len * 0.1;
+    const liters = trimArea / 8;
+    const mat = liters * (s.pricePrem / 10);
+    lines.push({ desc: `Trim & skirting (${gs('trim-finish')})`, tag: 'Trim', qty: len.toFixed(0) + ' m', liters, mat, labor: 0 });
+    paintList.push({ item: 'Trim Paint (gloss)', liters, grade: 'premium' });
+  }
+
+  // Doors
+  if (jobs.door) {
+    const cnt = gv('door-count');
+    const area = cnt * 1.8;
+    const liters = area / 10;
+    const mat = liters * (s.pricePrem / 10);
+    lines.push({ desc: `Doors & frames — ${cnt} doors (${gs('door-finish')})`, tag: 'Doors', qty: cnt + ' doors', liters, mat, labor: 0 });
+    paintList.push({ item: 'Door & Frame Paint', liters, grade: 'premium' });
+  }
+
+  // Prep
+  if (jobs.prep) {
+    const hrs = gv('prep-hrs');
+    const rate = gv('q-rate');
+    const laborCost = hrs * rate;
+    lines.push({ desc: `Prep work — ${gs('prep-type')} (${hrs} hrs)`, tag: 'Prep', qty: hrs + ' hrs', liters: 0, mat: 20, labor: laborCost });
+  }
+
+  // Exterior
+  if (jobs.exterior) {
+    const perim = gv('ext-perim');
+    const floors = gv('ext-floors');
+    const fh = gv('ext-floorh');
+    const wins = gv('ext-wins');
+    const winSz = gv('ext-winsize');
+    const extDoors = gv('ext-doors');
+    const coats = gv('ext-coats');
+    const gross = perim * (floors * fh);
+    const openings = (wins * winSz) + (extDoors * 4.5);
+    const net = Math.max(gross - openings, 1);
+    const liters = (net * coats) / s.covExt;
+    const mat = liters * (s.pricePrem / 10);
+    lines.push({ desc: `Exterior walls — ${gs('ext-surface')} (${floors} storey)`, tag: 'Exterior', qty: net.toFixed(1) + ' m²', liters, mat, labor: 0 });
+    paintList.push({ item: 'Exterior Paint (premium)', liters, grade: 'premium' });
+    totalArea += net;
+    totalPaintL += liters;
+  }
+
+  const painters = gv('q-painters');
+  const rate = gv('q-rate');
+  const days = gv('q-days');
+  const totalLaborHours = painters * days * 8;
+  const laborCost = rate * totalLaborHours;
+  const totalMat = lines.reduce((s, l) => s + l.mat, 0);
+  const sundries = totalMat * 0.08;
+  const sub = totalMat + sundries + laborCost + lines.reduce((s, l) => s + l.labor, 0);
+  const margin = gv('q-margin') / 100;
+  const withMargin = sub / (1 - margin);
+  const gstOn = gs('q-gst') === '1';
+  const gst = gstOn ? withMargin * 0.1 : 0;
+  const grand = withMargin + gst;
+
+  return { lines, paintList, totalArea, totalPaintL, laborCost, totalMat, sundries, sub, withMargin, gst, gstOn, grand, margin, painters, days, rate };
+}
+
+function updatePricePreview() {
+  try {
+    const c = calcQuote();
+    document.getElementById('price-metrics').innerHTML = [
+      { label: 'Total Area', value: c.totalArea.toFixed(0) + ' m²', sub: '' },
+      { label: 'Paint Needed', value: c.totalPaintL.toFixed(1) + ' L', sub: '' },
+      { label: 'Labour', value: '$' + c.laborCost.toFixed(0), sub: `${c.painters}p × ${c.days}d` },
+      { label: 'Total Quote', value: '$' + c.grand.toFixed(0), sub: c.gstOn ? 'inc GST' : 'ex GST', accent: true },
+    ].map(m => `<div class="metric${m.accent?' accent':''}"><div class="metric-label">${m.label}</div><div class="metric-value">${m.value}</div><div class="metric-sub">${m.sub}</div></div>`).join('');
+  } catch(e) {}
+}
+
+function computeAndPreview() {
+  currentCalc = calcQuote();
+  const doc = buildQuoteDoc(currentCalc, {
+    fname: gs('q-fname'), lname: gs('q-lname'), phone: gs('q-phone'),
+    email: gs('q-email'), addr: gs('q-addr'), date: gs('q-date'), notes: gs('q-notes')
+  }, null);
+  document.getElementById('quote-doc-wrapper').innerHTML = doc;
+}
+
+// ====== QUOTE DOCUMENT ======
+function buildQuoteDoc(c, client, qn) {
+  const s = DB.settings;
+  const today = new Date();
+  const validity = +document.getElementById('q-validity')?.value || s.validity;
+  const expiry = new Date(today.getTime() + validity * 86400000);
+  const fmt = d => new Date(d).toLocaleDateString('en-AU', {day:'2-digit', month:'short', year:'numeric'});
+  const qnum = qn || ('Q' + today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0') + '-' + String(DB.quotes.length + 1).padStart(3,'0'));
+
+  const lineRows = c.lines.map(l => `
+    <tr>
+      <td>${l.desc}</td>
+      <td>${l.qty}</td>
+      <td style="text-align:right;">${l.liters > 0 ? l.liters.toFixed(1) + ' L' : '—'}</td>
+      <td style="text-align:right;">$${(l.mat + l.labor).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  const paintRows = c.paintList.map(p => {
+    const tins = Math.ceil(p.liters / 10);
+    const price = getPaintPrice(p.grade);
+    return `<tr><td>${p.item}</td><td>${p.liters.toFixed(1)} L</td><td>${tins} × 10L tin${tins>1?'s':''}</td><td style="text-align:right;">$${(tins*price).toFixed(0)}</td></tr>`;
+  }).join('');
+
+  return `<div class="quote-doc" id="print-doc">
+    <div class="quote-doc-header">
+      <div>
+        <div class="quote-company-name">🖌️ ${s.name}</div>
+        <div style="font-size:12px; color:var(--text2); margin-top:6px; line-height:1.8;">
+          ${s.addr}<br>
+          📞 ${s.phone} &nbsp;|&nbsp; ✉️ ${s.email}<br>
+          ABN: ${s.abn} &nbsp;|&nbsp; Lic: ${s.lic}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:28px; font-family:'DM Serif Display',serif; color:var(--accent); letter-spacing:1px;">QUOTE</div>
+        <div style="font-size:13px; color:var(--text2); line-height:1.9; margin-top:4px;">
+          <strong>${qnum}</strong><br>
+          Date: ${fmt(today)}<br>
+          Valid until: ${fmt(expiry)}
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; background:var(--bg); border-radius:var(--radius-sm); padding:16px 20px; margin-bottom:24px; font-size:13px;">
+      <div>
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); margin-bottom:5px;">Quote Prepared For</div>
+        <div style="font-weight:600; font-size:15px;">${client.fname} ${client.lname}</div>
+        <div style="color:var(--text2); line-height:1.8;">${client.phone || ''}<br>${client.email || ''}<br>${client.addr || ''}</div>
+      </div>
+      <div>
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); margin-bottom:5px;">Job Details</div>
+        <div style="color:var(--text2); line-height:1.8;">
+          Job date: <strong>${client.date ? fmt(client.date) : 'TBD'}</strong><br>
+          ${client.notes ? 'Notes: ' + client.notes : ''}
+        </div>
+      </div>
+    </div>
+
+    <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
+      <thead><tr>
+        <th style="text-align:left; font-size:11px; font-weight:600; color:#fff; background:var(--accent); padding:10px 14px; text-transform:uppercase; letter-spacing:.4px;">Description</th>
+        <th style="text-align:left; font-size:11px; font-weight:600; color:#fff; background:var(--accent); padding:10px 14px; text-transform:uppercase; letter-spacing:.4px;">Area / Qty</th>
+        <th style="text-align:right; font-size:11px; font-weight:600; color:#fff; background:var(--accent); padding:10px 14px; text-transform:uppercase; letter-spacing:.4px;">Paint</th>
+        <th style="text-align:right; font-size:11px; font-weight:600; color:#fff; background:var(--accent); padding:10px 14px; text-transform:uppercase; letter-spacing:.4px;">Amount</th>
+      </tr></thead>
+      <tbody>
+        ${lineRows}
+        <tr style="background:var(--bg);">
+          <td>Sundries & consumables (tape, drop sheets, brushes, rollers)</td>
+          <td>—</td><td style="text-align:right;">—</td>
+          <td style="text-align:right;">$${c.sundries.toFixed(2)}</td>
+        </tr>
+        <tr style="background:var(--bg);">
+          <td>Labour — ${c.painters} painter${c.painters>1?'s':''} × ${c.days} day${c.days>1?'s':''} (${(c.painters*c.days*8).toFixed(0)} hrs @ $${c.rate}/hr)</td>
+          <td>—</td><td style="text-align:right;">—</td>
+          <td style="text-align:right;">$${c.laborCost.toFixed(2)}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">
+      ${c.paintList.length > 0 ? `
+      <div style="flex:1; min-width:260px;">
+        <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text2); margin-bottom:8px;">Paint Purchase List</div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead><tr>
+            <th style="text-align:left; padding:6px 8px; background:var(--bg); font-size:11px; color:var(--text2);">Item</th>
+            <th style="padding:6px 8px; background:var(--bg); font-size:11px; color:var(--text2);">Needed</th>
+            <th style="padding:6px 8px; background:var(--bg); font-size:11px; color:var(--text2);">Buy</th>
+            <th style="text-align:right; padding:6px 8px; background:var(--bg); font-size:11px; color:var(--text2);">Cost</th>
+          </tr></thead>
+          <tbody>${paintRows}</tbody>
+        </table>
+      </div>` : ''}
+
+      <div class="quote-total-box">
+        <div class="quote-total-row"><span>Subtotal (before margin)</span><span>$${c.sub.toFixed(2)}</span></div>
+        <div class="quote-total-row"><span>Margin (${Math.round(c.margin*100)}%)</span><span>$${(c.withMargin - c.sub).toFixed(2)}</span></div>
+        <div class="quote-total-row"><span>Subtotal</span><span>$${c.withMargin.toFixed(2)}</span></div>
+        ${c.gstOn ? `<div class="quote-total-row"><span>GST (10%)</span><span>$${c.gst.toFixed(2)}</span></div>` : ''}
+        <div class="quote-total-row quote-grand"><span>TOTAL</span><span>$${c.grand.toFixed(2)}</span></div>
+      </div>
+    </div>
+
+    <div class="quote-terms">
+      <strong>Terms & Conditions</strong><br>
+      ${s.terms}
+    </div>
+  </div>`;
+}
+
+// ====== SAVE QUOTE ======
+function saveAndFinish() {
+  if (!gs('q-fname') || !gs('q-addr')) {
+    alert('Please fill in client name and address.');
+    qNext(1); return;
+  }
+  const c = currentCalc || calcQuote();
+  const client = {
+    fname: gs('q-fname'), lname: gs('q-lname'), phone: gs('q-phone'),
+    email: gs('q-email'), addr: gs('q-addr'), date: gs('q-date'), notes: gs('q-notes')
+  };
+  const today = new Date();
+  const qn = currentQuoteId
+    ? DB.quotes.find(q => q.id === currentQuoteId)?.number
+    : 'Q' + today.getFullYear() + String(today.getMonth()+1).padStart(2,'0') + String(today.getDate()).padStart(2,'0') + '-' + String(DB.quotes.length + 1).padStart(3,'0');
+
+  const quote = {
+    id: currentQuoteId || Date.now().toString(),
+    number: qn,
+    client,
+    calc: c,
+    grand: c.grand,
+    status: 'draft',
+    createdAt: today.toISOString(),
+    docHtml: buildQuoteDoc(c, client, qn),
+    rooms: [...rooms],
+    jobs: { ...jobs }
+  };
+
+  if (currentQuoteId) {
+    const idx = DB.quotes.findIndex(q => q.id === currentQuoteId);
+    if (idx > -1) { DB.quotes[idx] = { ...DB.quotes[idx], ...quote }; }
+  } else {
+    DB.quotes.unshift(quote);
+    // Auto-save customer
+    const exists = DB.customers.find(c => c.email === client.email && client.email);
+    if (!exists && client.fname) {
+      DB.customers.push({ id: Date.now().toString() + 'c', fname: client.fname, lname: client.lname, phone: client.phone, email: client.email, addr: client.addr, notes: '', createdAt: today.toISOString() });
+      populateExistingCustomers();
+    }
+  }
+  save();
+  currentQuoteId = quote.id;
+  alert('Quote saved! (' + qn + ')');
+  viewQuote(quote.id);
+}
+
+function printQuote() { window.print(); }
+
+function emailQuote() {
+  const clientEmail = gs('q-email') || (currentQuoteId ? DB.quotes.find(q=>q.id===currentQuoteId)?.client?.email : '');
+  const clientName = gs('q-fname') ? gs('q-fname') + ' ' + gs('q-lname') : '';
+  const qn = currentQuoteId ? DB.quotes.find(q=>q.id===currentQuoteId)?.number : 'Quote';
+  const s = DB.settings;
+  const grand = currentCalc ? '$' + currentCalc.grand.toFixed(2) : '';
+  const subject = encodeURIComponent(`Painting Quote ${qn} — ${s.name}`);
+  const body = encodeURIComponent(
+    `Hi ${clientName},\n\nPlease find attached your painting quote ${qn}.\n\nTotal: ${grand}\n\nTo proceed, please reply to this email or call us on ${s.phone}.\n\nKind regards,\n${s.name}\n${s.phone}\n${s.email}`
+  );
+  window.open(`mailto:${clientEmail}?subject=${subject}&body=${body}`);
+}
+
+// ====== QUOTES LIST ======
+function renderQuotesList() {
+  const search = (document.getElementById('quote-search')?.value || '').toLowerCase();
+  let list = DB.quotes;
+  if (quoteFilter !== 'all') list = list.filter(q => q.status === quoteFilter);
+  if (search) list = list.filter(q =>
+    (q.client.fname + ' ' + q.client.lname).toLowerCase().includes(search) ||
+    (q.client.addr || '').toLowerCase().includes(search)
+  );
+
+  const tbody = document.getElementById('quotes-tbody');
+  const statusColor = { draft: 'badge-gray', sent: 'badge-amber', accepted: 'badge-green', declined: 'badge-red', completed: 'badge-accent' };
+
+  if (list.length === 0) {
+    tbody.innerHTML = '';
+    document.getElementById('quotes-empty').style.display = '';
+    return;
+  }
+  document.getElementById('quotes-empty').style.display = 'none';
+  tbody.innerHTML = list.map(q => `<tr>
+    <td><strong>${q.number}</strong></td>
+    <td>${q.client.fname} ${q.client.lname}</td>
+    <td style="font-size:12.5px; color:var(--text2);">${q.client.addr || '—'}</td>
+    <td style="font-size:12.5px;">${new Date(q.createdAt).toLocaleDateString('en-AU')}</td>
+    <td class="right" style="font-family:'DM Serif Display',serif; font-size:16px;">$${q.grand.toFixed(0)}</td>
+    <td><span class="badge ${statusColor[q.status] || 'badge-gray'}">${q.status.charAt(0).toUpperCase()+q.status.slice(1)}</span></td>
+    <td><button class="btn btn-sm" onclick="viewQuote('${q.id}')">View</button></td>
+  </tr>`).join('');
+}
+
+function filterQuotes(f, el) {
+  quoteFilter = f;
+  document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderQuotesList();
+}
+
+function viewQuote(id) {
+  const q = DB.quotes.find(x => x.id === id);
+  if (!q) return;
+  currentQuoteId = id;
+  currentCalc = q.calc;
+  document.getElementById('single-quote-doc').innerHTML = q.docHtml;
+  document.getElementById('quote-status-select').value = q.status;
+
+  // Reload q- fields for email action
+  document.getElementById('q-fname').value = q.client.fname;
+  document.getElementById('q-lname').value = q.client.lname;
+  document.getElementById('q-email').value = q.client.email;
+  document.getElementById('q-phone').value = q.client.phone;
+  document.getElementById('q-addr').value = q.client.addr;
+
+  goPage('quote');
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-quotes').classList.add('active');
+}
+
+function updateQuoteStatus(status) {
+  const q = DB.quotes.find(x => x.id === currentQuoteId);
+  if (q) { q.status = status; save(); }
+}
+
+function deleteCurrentQuote() {
+  if (!confirm('Delete this quote? This cannot be undone.')) return;
+  DB.quotes = DB.quotes.filter(q => q.id !== currentQuoteId);
+  save();
+  goPage('quotes');
+  renderQuotesList();
+}
+
+// ====== CUSTOMERS ======
+function openCustomerModal(id) {
+  editingCustomerId = id || null;
+  document.getElementById('cust-modal-title').textContent = id ? 'Edit Customer' : 'Add Customer';
+  if (id) {
+    const c = DB.customers.find(x => x.id === id);
+    if (c) {
+      document.getElementById('cm-fname').value = c.fname;
+      document.getElementById('cm-lname').value = c.lname;
+      document.getElementById('cm-phone').value = c.phone || '';
+      document.getElementById('cm-email').value = c.email || '';
+      document.getElementById('cm-addr').value = c.addr || '';
+      document.getElementById('cm-notes').value = c.notes || '';
+    }
+  } else {
+    ['cm-fname','cm-lname','cm-phone','cm-email','cm-addr','cm-notes'].forEach(id => document.getElementById(id).value = '');
+  }
+  document.getElementById('customer-modal').classList.add('open');
+}
+
+function closeCustomerModal() { document.getElementById('customer-modal').classList.remove('open'); }
+
+function saveCustomer() {
+  const fname = document.getElementById('cm-fname').value.trim();
+  const lname = document.getElementById('cm-lname').value.trim();
+  if (!fname) { alert('Please enter a name.'); return; }
+  if (editingCustomerId) {
+    const idx = DB.customers.findIndex(c => c.id === editingCustomerId);
+    if (idx > -1) {
+      DB.customers[idx] = { ...DB.customers[idx], fname, lname, phone: document.getElementById('cm-phone').value, email: document.getElementById('cm-email').value, addr: document.getElementById('cm-addr').value, notes: document.getElementById('cm-notes').value };
+    }
+  } else {
+    DB.customers.push({ id: Date.now().toString(), fname, lname, phone: document.getElementById('cm-phone').value, email: document.getElementById('cm-email').value, addr: document.getElementById('cm-addr').value, notes: document.getElementById('cm-notes').value, createdAt: new Date().toISOString() });
+  }
+  save();
+  populateExistingCustomers();
+  closeCustomerModal();
+  renderCustomers();
+}
+
+function renderCustomers() {
+  const search = (document.getElementById('cust-search')?.value || '').toLowerCase();
+  let list = DB.customers;
+  if (search) list = list.filter(c => (c.fname + ' ' + c.lname + ' ' + (c.email||'')).toLowerCase().includes(search));
+  const grid = document.getElementById('customers-grid');
+  const empty = document.getElementById('customers-empty');
+  if (list.length === 0) { grid.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = list.map(c => {
+    const quoteCount = DB.quotes.filter(q => q.client.email === c.email || (q.client.fname === c.fname && q.client.lname === c.lname)).length;
+    const initials = (c.fname[0] + (c.lname?.[0]||'')).toUpperCase();
+    return `<div class="cust-card" onclick="openCustomerModal('${c.id}')">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <div style="width:38px; height:38px; border-radius:50%; background:var(--accent-light); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; flex-shrink:0;">${initials}</div>
+        <div>
+          <div class="cust-name">${c.fname} ${c.lname}</div>
+          <div class="cust-info">${quoteCount} quote${quoteCount !== 1 ? 's' : ''}</div>
+        </div>
+      </div>
+      <div class="cust-info">${c.phone || ''}</div>
+      <div class="cust-info">${c.email || ''}</div>
+      <div class="cust-info" style="margin-top:4px; font-size:11.5px;">${c.addr || ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function populateExistingCustomers() {
+  const sel = document.getElementById('q-existing-customer');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— New customer —</option>';
+  DB.customers.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${c.fname} ${c.lname}${c.phone ? ' — ' + c.phone : ''}`;
+    sel.appendChild(opt);
+  });
+}
+
+function fillFromCustomer(id) {
+  if (!id) return;
+  const c = DB.customers.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('q-fname').value = c.fname;
+  document.getElementById('q-lname').value = c.lname;
+  document.getElementById('q-phone').value = c.phone || '';
+  document.getElementById('q-email').value = c.email || '';
+  document.getElementById('q-addr').value = c.addr || '';
+}
+
+// ====== DASHBOARD ======
+function renderDashboard() {
+  const quotes = DB.quotes;
+  const total = quotes.reduce((s, q) => s + (q.grand || 0), 0);
+  const accepted = quotes.filter(q => q.status === 'accepted').reduce((s,q) => s+q.grand, 0);
+  const thisMonth = quotes.filter(q => new Date(q.createdAt).getMonth() === new Date().getMonth());
+  const convRate = quotes.length > 0 ? Math.round((quotes.filter(q=>q.status==='accepted'||q.status==='completed').length / quotes.length) * 100) : 0;
+
+  document.getElementById('dash-metrics').innerHTML = [
+    { label: 'Total Quoted', value: '$' + total.toFixed(0), sub: `${quotes.length} quote${quotes.length!==1?'s':''}` },
+    { label: 'Accepted Value', value: '$' + accepted.toFixed(0), sub: 'accepted & completed' },
+    { label: 'This Month', value: thisMonth.length + ' quotes', sub: '$' + thisMonth.reduce((s,q)=>s+q.grand,0).toFixed(0) + ' value' },
+    { label: 'Win Rate', value: convRate + '%', sub: 'acceptance rate', accent: true }
+  ].map(m => `<div class="metric${m.accent?' accent':''}"><div class="metric-label">${m.label}</div><div class="metric-value">${m.value}</div><div class="metric-sub">${m.sub}</div></div>`).join('');
+
+  const recent = quotes.slice(0, 6);
+  const statusColor = { draft: 'badge-gray', sent: 'badge-amber', accepted: 'badge-green', declined: 'badge-red', completed: 'badge-accent' };
+  document.getElementById('dash-recent').innerHTML = recent.length === 0
+    ? '<div class="empty"><div class="icon">📋</div><p>No quotes yet. Create your first!</p></div>'
+    : recent.map(q => `<div class="hist-row">
+        <div class="hist-qn">${q.number}</div>
+        <div class="hist-client">${q.client.fname} ${q.client.lname}<br><span style="font-size:11.5px; color:var(--text3);">${q.client.addr||''}</span></div>
+        <div><span class="badge ${statusColor[q.status]||'badge-gray'}">${q.status}</span></div>
+        <div class="hist-amt">$${q.grand.toFixed(0)}</div>
+        <div><button class="btn btn-sm" onclick="viewQuote('${q.id}')">View</button></div>
+      </div>`).join('');
+
+  const custMap = {};
+  quotes.forEach(q => {
+    const key = q.client.fname + ' ' + q.client.lname;
+    custMap[key] = (custMap[key] || 0) + q.grand;
+  });
+  const topCusts = Object.entries(custMap).sort((a,b) => b[1]-a[1]).slice(0,4);
+  document.getElementById('dash-top-customers').innerHTML = topCusts.length === 0
+    ? '<div style="font-size:13px; color:var(--text3); padding:8px 0;">No data yet.</div>'
+    : topCusts.map(([name, val]) => `<div style="display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border); font-size:13.5px;"><span>${name}</span><span style="font-family:'DM Serif Display',serif;">$${val.toFixed(0)}</span></div>`).join('');
+}
+
+// ====== INIT ======
+load();
+renderDashboard();
+resetQuoteForm();
+
+// Live price preview on step 3 inputs
+['q-painters','q-rate','q-days','q-margin','q-gst'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', updatePricePreview);
+});
+</script>
+</body>
+</html>
